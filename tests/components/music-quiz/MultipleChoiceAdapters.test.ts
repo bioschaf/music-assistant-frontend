@@ -14,6 +14,10 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("@/plugins/i18n", () => ({
   $t: (key: string) => key,
 }));
+vi.mock("@/helpers/utils", () => ({
+  getMediaImageUrl: (imageUrl: string | null | undefined) =>
+    imageUrl ? `resolved:${imageUrl}` : "",
+}));
 
 const currentRound = {
   question: "Which song is playing?",
@@ -55,6 +59,44 @@ const playerState = {
 } satisfies MusicQuizGuessTheSongPersonalizedState;
 
 describe("multiple-choice adapters", () => {
+  it("hides parenthetical text while keeping the original answer id", async () => {
+    const wrapper = mount(MultipleChoiceGrid, {
+      props: {
+        suggestions: [
+          {
+            suggestion_id: "opaque-id",
+            label: "Song (Live)\nAlbum (Deluxe)",
+          },
+        ],
+        disabled: false,
+        selectedSuggestionId: null,
+      },
+    });
+
+    const label = wrapper.get("span.min-w-0.flex-1");
+    expect(label.text()).toBe("Song\nAlbum");
+    expect(label.classes()).toContain("whitespace-pre-line");
+    await wrapper.get("button").trigger("click");
+    expect(wrapper.emitted("select")).toEqual([["opaque-id"]]);
+    wrapper.unmount();
+  });
+
+  it("resolves image URLs for answer suggestions", () => {
+    const imageUrl = "http://music-assistant/imageproxy/abc?size=0&fmt=jpg";
+    const wrapper = mount(MultipleChoiceGrid, {
+      props: {
+        suggestions: [
+          { suggestion_id: "one", label: "One", image_url: imageUrl },
+        ],
+        disabled: false,
+        selectedSuggestionId: null,
+      },
+    });
+
+    expect(wrapper.get("img").attributes("src")).toBe(`resolved:${imageUrl}`);
+    wrapper.unmount();
+  });
+
   it("emits a discriminated submission", () => {
     const wrapper = shallowMount(MultipleChoicePlayerAnswer, {
       props: {

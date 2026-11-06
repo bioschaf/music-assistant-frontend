@@ -18,9 +18,20 @@
       >
         {{ optionLetter(index) }}
       </span>
-      <span class="min-w-0 flex-1 leading-snug break-words">
-        {{ suggestion.label }}
-      </span>
+      <div class="flex min-w-0 flex-1 items-center gap-3">
+        <img
+          v-if="suggestion.image_url"
+          :src="getMediaImageUrl(suggestion.image_url)"
+          :alt="suggestion.label"
+          class="size-16 shrink-0 rounded-md object-cover"
+        />
+
+        <span
+          class="min-w-0 flex-1 break-words whitespace-pre-line leading-snug"
+        >
+          {{ getSuggestionDisplayLabel(suggestion.label) }}
+        </span>
+      </div>
     </Button>
   </div>
 </template>
@@ -28,6 +39,7 @@
 <script setup lang="ts">
 import { Button } from "@/components/ui/button";
 import type { MusicQuizSuggestion } from "@/composables/music-quiz/useMusicQuiz";
+import { getMediaImageUrl } from "@/helpers/utils";
 
 const OPTION_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -40,5 +52,12 @@ const emit = defineEmits<{ select: [suggestionId: string] }>();
 
 function optionLetter(index: number): string {
   return OPTION_LETTERS[index] ?? String(index + 1);
+}
+
+function getSuggestionDisplayLabel(label: string): string {
+  return label
+    .replace(/\s*\([^)]*\)/g, "")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
 }
 </script>

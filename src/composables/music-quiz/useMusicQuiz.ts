@@ -549,6 +549,7 @@ export type MusicQuizRound = MusicQuizSupportedRound;
 export interface MusicQuizSuggestion {
   suggestion_id: string;
   label: string;
+  image_url?: string | null;
 }
 
 export interface MusicQuizSource {
